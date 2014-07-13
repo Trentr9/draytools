@@ -441,11 +441,14 @@ class draytools:
 			sigstart = data.find('\x5A\x5A\xA5\x5A\xA5\x5A')
 		# Compressed FW block found, now decompress
 		if sigstart > 0:
-			if draytools.verbose:
-				print 'Signature found at [0x%08X]' % sigstart
 			lzosizestart = sigstart + 6
 			lzostart = lzosizestart + 4
 			lzosize = unpack('>L', data[lzosizestart:lzostart])[0]
+			if draytools.verbose:
+				print 'Compressed FW signature found at [0x%08X]' % sigstart
+				print 'Compressed FW length found at [0x%08X] = 0x%08X (%d) bytes' % (lzosizestart,lzosize,lzosize)
+				print 'Compressed FW block starts at [0x%08X]' % (lzostart)
+
 			return data[0x100:sigstart+2] \
 				+ pydelzo.decompress('\xF0' + pack(">L",0x1000000) \
 					+ data[lzostart:lzostart+lzosize])
@@ -733,8 +736,8 @@ To extract firmware and filesystem contents
 		g = -1
 		try:
 			g, outdata = draytools.de_cfg(indata)
-		except LZO_ERROR:
-			print '[ERR]:\tInput file corrupted or not supported'
+		except LZO_ERROR, lastlze:
+			print '[ERR]:\tInput file corrupted or not supported (%s)' % lastlze
 			sys.exit(3)
 		if g == draytools.CFG_RAW:
 			print '[ERR]:\tNothing to do. '\
@@ -755,8 +758,8 @@ To extract firmware and filesystem contents
 	elif options.decrypt:
 		try:
 			outdata = draytools.decrypt_cfg(indata)
-		except LZO_ERROR:
-			print '[ERR]:\tInput file corrupted or not supported'
+		except LZO_ERROR, lastlze:
+			print '[ERR]:\tInput file corrupted or not supported (%s)' % lastlze
 			sys.exit(3)
 
 		cksum = draytools.v2k_checksum(str(outdata))
@@ -777,8 +780,8 @@ To extract firmware and filesystem contents
 	elif options.decompress:
 		try:
 			outdata = draytools.decompress_cfg(indata)
-		except LZO_ERROR:
-			print '[ERR]:\tInput file corrupted or not supported'
+		except LZO_ERROR, lastlze:
+			print '[ERR]:\tInput file corrupted or not supported (%s)' % lastlze
 			sys.exit(3)
 		cksum = draytools.v2k_checksum(str(indata))
 		if options.verbose:
@@ -800,8 +803,8 @@ To extract firmware and filesystem contents
 		g = -1
 		try:
 			g, outdata = draytools.de_cfg(indata)
-		except LZO_ERROR:
-			print '[ERR]:\tInput file corrupted or not supported'
+		except LZO_ERROR, lastlze:
+			print '[ERR]:\tInput file corrupted or not supported (%s)' % lastlze
 			sys.exit(3)
 		creds = draytools.get_credentials(outdata)
 		print "Login    :\t" + (creds[0] == "" and "admin" or creds[0])
@@ -812,6 +815,9 @@ To extract firmware and filesystem contents
 	if options.firmware:
 		try:
 			outdata = draytools.decompress_firmware(indata)
+		except LZO_ERROR, lastlze:
+			print '[ERR]:\tInput file corrupted or not supported (%s)' % lastlze
+			sys.exit(3)
 		except:
 			print '[ERR]:\tInput file corrupted or not supported'
 			sys.exit(3)
@@ -830,6 +836,9 @@ To extract firmware and filesystem contents
 	elif options.fw_all:
 		try:
 			outdata = draytools.decompress_firmware(indata)
+		except LZO_ERROR, lastlze:
+			print '[ERR]:\tInput file corrupted or not supported (%s)' % lastlze
+			sys.exit(3)
 		except:
 			print '[ERR]:\tInput file corrupted or not supported'
 			sys.exit(3)
@@ -848,6 +857,9 @@ To extract firmware and filesystem contents
 		try:
 			fss, nf = draytools.decompress_fs_only(indata, outdir, 
 				options.test)
+		except LZO_ERROR, lastlze:
+			print '[ERR]:\tInput file corrupted or not supported (%s)' % lastlze
+			sys.exit(3)
 		except:
 			print '[ERR]:\tInput file corrupted or not supported'
 			sys.exit(3)
@@ -862,6 +874,9 @@ To extract firmware and filesystem contents
 		try:
 			fss, nf = draytools.decompress_fs_only(indata, outdir, 
 				options.test)
+		except LZO_ERROR, lastlze:
+			print '[ERR]:\tInput file corrupted or not supported (%s)' % lastlze
+			sys.exit(3)
 		except:
 			print '[ERR]:\tInput file corrupted or not supported'
 			sys.exit(3)
