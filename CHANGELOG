@@ -1,3 +1,6 @@
+0.43b - 16.07.2014
+Option to patch valid V2KCheckSum into modified firmware files
+
 0.42b - 09.06.2013
 Detect if we support config or master password when extracting firmware
 

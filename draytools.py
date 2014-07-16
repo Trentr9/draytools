@@ -34,7 +34,7 @@ import hmac
 
 class draytools:
 	"""DrayTek Vigor password recovery, config & firmware tools"""
-	__version__ = "v0.42b"
+	__version__ = "v0.43b"
 	copyright = \
 	"draytools Copyright (C) 2011 AMMOnium <ammonium at mail dot ru>"
 	

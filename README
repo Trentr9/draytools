@@ -87,6 +87,9 @@ IF YOU USE IT, YOU ACCEPT THAT YOU ARE DOING EVERYTHING AT YOUR OWN RISK.
 1.3. List of supported routers 
 ------------------------------------------------------------------------------
 
+NOTE: Only firmwares older than year 2013 are supported. Newer ones do not 
+contain the features we are relying on (master password removed, etc.)
+
 For config file operations, refer to the corresponding list.
 For firmware operations, most DrayTek Vigor 2xxx routers should be supported
 (and some 3xxx also).
