@@ -156,6 +156,10 @@ class draytools:
 		if 'sys_cfg_dev3' in data and 'sys_cfg_env3' in data:
 			print "[WARN]:\tConfig file encryption is NOT yet supported for this firmware!"
 			
+	@staticmethod
+	def pad_to_zero_v2k_checksum(data):
+		"""Return 4-byte padding to make v2kchecksum(given block + this padding) = zero"""
+		return draytools.v2k_checksum(data + '\x00\x00\x00\x00')
 
 	@staticmethod
 	def v2k_checksum(data):
@@ -679,7 +683,7 @@ To extract firmware and filesystem contents
 		"Output directory for filesystem contents, \"fs_out\" by default", 
 		default="fs_out")
 
-# miscellaneous option group for cmdline option parser 
+# miscellaneous option group for cmdline option parser
 	mgroup.add_option('-m', '--master-key',
 		action="store", dest="mac",
 		help="Generate FTP master key for given router MAC address. "
@@ -687,6 +691,12 @@ To extract firmware and filesystem contents
 		"master key as password", 
 		default=None)
 
+	mgroup.add_option('-P', '--patch-fw-checksum',
+		action="store_true", dest="patch_fw",
+		help="Patch the firmware code section checksum after edits", 
+		default=None)
+
+# register all option groups an initialize the parser
 
 	parser.add_option_group(cfggroup)
 	parser.add_option_group(fwgroup)
@@ -799,7 +809,7 @@ To extract firmware and filesystem contents
 
 # Command: extract admin credentials from config file
 	if options.password and \
-	not (True in [options.firmware, options.fw_all, options.fs]):
+	not (True in [options.firmware, options.fw_all, options.fs, options.patch_fw]):
 		g = -1
 		try:
 			g, outdata = draytools.de_cfg(indata)
@@ -886,6 +896,32 @@ To extract firmware and filesystem contents
 		else:
 			print 'FS extraction test OK, %d files extracted' % nf
 
+# Command: patch the firmware code block checksum
+	elif options.patch_fw:
+		try:
+			code_size = unpack(">L",indata[:4])[0]
+			checksum_offset = code_size - 4
+			padding = draytools.pad_to_zero_v2k_checksum(indata[:checksum_offset])
+			outdata = indata[:checksum_offset] + pack(">L", padding) + indata[checksum_offset+4:]
+			if options.verbose:
+				print 'Offset   = %08X' % checksum_offset
+				print 'Padding  = %08X' % padding
+				print 'Original = %08X' % draytools.v2k_checksum(indata[:code_size])
+				print 'Modified = %08X' % draytools.v2k_checksum(outdata[:code_size])
+			ol = len(outdata)
+		except Exception, e:
+			print '[ERR]:\tInput file corrupted or not supported (%s)' % e
+			sys.exit(3)
+
+		if not options.test:
+			outfile = file(outfname, 'wb')
+			outfile.write(outdata)
+			outfile.close()
+			print outfname + ' written, %d [0x%08X] bytes' % (ol,ol)
+		else:
+			print 'FW checksum patch test OK, ' \
+				'output size %d [0x%08X] bytes' % (ol,ol)
+
 # Command: generate master password
 	elif options.mac is not None:
 		# validate mac address (hex, delimited by colons, dashes or nothing)
@@ -899,4 +935,5 @@ To extract firmware and filesystem contents
 		else:
 			print '[ERR]:\tPlease enter a valid MAC address, e.g '\
 			'00-11-22-33-44-55 or 00:DE:AD:BE:EF:00 or 1337babecafe'
+
 # EOF draytools.py
