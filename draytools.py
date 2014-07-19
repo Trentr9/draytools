@@ -34,7 +34,7 @@ import hmac
 
 class draytools:
 	"""DrayTek Vigor password recovery, config & firmware tools"""
-	__version__ = "v0.43b"
+	__version__ = "v0.44b"
 	copyright = \
 	"draytools Copyright (C) 2011 AMMOnium <ammonium at mail dot ru>"
 	
@@ -536,7 +536,7 @@ class draytools:
 		v0 -= a3
 	#	v0 &= 0xFFFFFFFF
 		st[0] = a3
-		res[0] = self.atu[abs(v0)]
+		res[0] = draytools.atu[abs(v0)]
 		
 		for i in xrange(1, 8):
 			v1 = st[i-1]
@@ -576,9 +576,9 @@ class draytools:
 			a1 += v0
 			v0 &= 0xFFFFFFFF
 			if a0 == 0:
-				v1 = self.atu[abs(v0)]
+				v1 = draytools.atu[abs(v0)]
 			else:
-				v1 = self.atl[abs(v0)]
+				v1 = draytools.atl[abs(v0)]
 			res[i] = v1
 			v0 = 0
 		return ''.join(res)
