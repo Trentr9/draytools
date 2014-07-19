@@ -1,3 +1,6 @@
+0.44b - 19.07.2014
+Fixed bug #18 in master password generation
+
 0.43b - 16.07.2014
 Option to patch valid V2KCheckSum into modified firmware files
 
